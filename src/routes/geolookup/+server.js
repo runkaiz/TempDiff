@@ -18,14 +18,16 @@ export async function GET({ url }) {
 
 	try {
 		const response = await fetch(string, options);
+		return response;
+
 		const parsed = await response.json();
 		const { lat, lon } = parsed[0];
-		
+
 		const openweatherURI = `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&appid=${OPENWEATHERAPI}`;
 		const weatherOptions = {
-			method: 'GET',
+			method: 'GET'
 		};
-		
+
 		try {
 			const response = await fetch(openweatherURI, weatherOptions);
 
