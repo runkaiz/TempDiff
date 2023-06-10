@@ -10,19 +10,48 @@
 	let secondLat = 0;
 	let secondLon = 0;
 
-	let day = true;
+	let firstValid = false;
+	let secondValid = false;
+
+	let results = [[], []];
+	$: validInput = firstValid && secondValid;
+	$: validSelection = day || week || month || year;
+	let loading = false;
+
+	$: shouldDisplayResult = !loading && validInput && validSelection;
+
+	let day = false;
 	let week = false;
 	let month = false;
 	let year = false;
 
 	function select(selected) {
-		day = selected == 'day' ? true : false;
-		week = selected == 'week' ? true : false;
-		month = selected == 'month' ? true : false;
-		year = selected == 'year' ? true : false;
+		if (validInput) {
+			day = selected == 'day' ? true : false;
+			week = selected == 'week' ? true : false;
+			month = selected == 'month' ? true : false;
+			year = selected == 'year' ? true : false;
+
+			results = [[], []];
+			getWeather(selected);
+		}
 	}
 
 	async function lookUp(query, slot) {
+		if (query.trim() == '') {
+			if (slot == 0) {
+				firstLat = 0;
+				firstLon = 0;
+				firstValid = false;
+			} else {
+				secondLat = 0;
+				secondLon = 0;
+				secondValid = false;
+			}
+
+			return;
+		}
+
 		try {
 			const options = {
 				method: 'GET'
@@ -40,13 +69,68 @@
 			if (slot == 0) {
 				firstLat = lat;
 				firstLon = lon;
+				firstValid = true;
 			} else {
 				secondLat = lat;
 				secondLon = lon;
+				secondValid = true;
 			}
 		} catch (error) {
 			console.error(error);
 		}
+	}
+
+	async function getWeather(selected) {
+		let days = 0;
+
+		switch (selected) {
+			case 'day':
+				days = 0;
+				break;
+			case 'week':
+				days = 7;
+				break;
+			case 'month':
+				days = 30;
+				break;
+			case 'year':
+				days = 365;
+				break;
+		}
+
+		try {
+			const options = {
+				method: 'GET'
+			};
+
+			const url =
+				'/fetchWeather?' +
+				new URLSearchParams({
+					lat: firstLat,
+					lon: firstLon
+				});
+			const response = await fetch(url, options);
+			const parsed = await response.json();
+
+			results[0].push(parsed);
+
+			const url2 =
+				'/fetchWeather?' +
+				new URLSearchParams({
+					lat: secondLat,
+					lon: secondLon
+				});
+			const response2 = await fetch(url2, options);
+			const parsed2 = await response2.json();
+
+			results[1].push(parsed2);
+
+			results = results;
+		} catch (error) {
+			console.error(error);
+		}
+
+		console.log(results);
 	}
 </script>
 
@@ -218,19 +302,20 @@
 			</nav>
 		</div>
 	</div>
-
-	<div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-		<div class="grid grid-cols-3 mt-2 gap-8 place-content-center">
-			<div>
-				<WeatherItem />
-			</div>
-			<div class="mx-auto text-center">
-				<h3>Result</h3>
-				<h2>+23</h2>
-			</div>
-			<div>
-				<WeatherItem />
+	{#if shouldDisplayResult}
+		<div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+			<div class="grid grid-cols-3 mt-2 gap-8 place-content-center">
+				<div>
+					<WeatherItem />
+				</div>
+				<div class="mx-auto text-center">
+					<h3>Result</h3>
+					<h2>+23</h2>
+				</div>
+				<div>
+					<WeatherItem />
+				</div>
 			</div>
 		</div>
-	</div>
+	{/if}
 </main>
