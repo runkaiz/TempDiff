@@ -13,25 +13,30 @@
 	let firstValid = false;
 	let secondValid = false;
 
+	let resultReady = false;
+
+	let days = 0;
+
 	let results = [[], []];
 	$: validInput = firstValid && secondValid;
-	$: validSelection = day || week || month || year;
+	$: validSelection = current || week || month || year;
 	let loading = false;
 
 	$: shouldDisplayResult = !loading && validInput && validSelection;
 
-	let day = false;
+	let current = false;
 	let week = false;
 	let month = false;
 	let year = false;
 
 	function select(selected) {
 		if (validInput) {
-			day = selected == 'day' ? true : false;
+			current = selected == 'current' ? true : false;
 			week = selected == 'week' ? true : false;
 			month = selected == 'month' ? true : false;
 			year = selected == 'year' ? true : false;
 
+			resultReady = false;
 			results = [[], []];
 			getWeather(selected);
 		}
@@ -81,11 +86,9 @@
 	}
 
 	async function getWeather(selected) {
-		let days = 0;
-
 		switch (selected) {
-			case 'day':
-				days = 0;
+			case 'current':
+				days = 1;
 				break;
 			case 'week':
 				days = 7;
@@ -126,6 +129,7 @@
 			results[1].push(parsed2);
 
 			results = results;
+			resultReady = true;
 		} catch (error) {
 			console.error(error);
 		}
@@ -227,21 +231,21 @@
 		<div class="hidden sm:block">
 			<nav class="isolate flex divide-x divide-gray-200 rounded-lg shadow" aria-label="Tabs">
 				<!-- Current: "text-gray-900", Default: "text-gray-500 hover:text-gray-700" -->
-				{#if day}
+				{#if current}
 					<button
 						class="text-gray-900 rounded-l-lg group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10"
 						aria-current="page"
 					>
-						<span>Day</span>
+						<span>Current</span>
 						<span aria-hidden="true" class="bg-indigo-500 absolute inset-x-0 bottom-0 h-0.5" />
 					</button>
 				{:else}
 					<button
 						class="text-gray-500 hover:text-gray-700 group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10"
 						aria-current="page"
-						on:click={() => select('day')}
+						on:click={() => select('current')}
 					>
-						<span>Day</span>
+						<span>Current</span>
 						<span aria-hidden="true" class="bg-transparent absolute inset-x-0 bottom-0 h-0.5" />
 					</button>
 				{/if}
@@ -302,18 +306,22 @@
 			</nav>
 		</div>
 	</div>
-	{#if shouldDisplayResult}
+	{#if shouldDisplayResult && resultReady}
 		<div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
 			<div class="grid grid-cols-3 mt-2 gap-8 place-content-center">
 				<div>
-					<WeatherItem />
+					{#each results[0] as result}
+						<WeatherItem condition={result.current.temp} icon={result.current.weather[0].icon} />
+					{/each}
 				</div>
 				<div class="mx-auto text-center">
 					<h3>Result</h3>
-					<h2>+23</h2>
+					<h2>{results[1][0].current.temp - results[0][0].current.temp}</h2>
 				</div>
 				<div>
-					<WeatherItem />
+					{#each results[1] as result}
+						<WeatherItem condition={result.current.temp} icon={result.current.weather[0].icon} />
+					{/each}
 				</div>
 			</div>
 		</div>
