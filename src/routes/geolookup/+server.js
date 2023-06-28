@@ -1,7 +1,5 @@
 import { RAPIDAPI } from '$env/static/private';
 
-import { error } from '@sveltejs/kit';
-
 export async function GET({ url }) {
 	const input = url.searchParams.get('query');
 

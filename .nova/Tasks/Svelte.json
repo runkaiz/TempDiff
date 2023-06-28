@@ -1,12 +1,12 @@
 {
-  "actions" : {
-    "run" : {
-      "postActions" : [
-        {
-          "script" : "npm run dev",
-          "type" : "runScript"
-        }
-      ]
-    }
-  }
+	"actions": {
+		"run": {
+			"postActions": [
+				{
+					"script": "npm run dev",
+					"type": "runScript"
+				}
+			]
+		}
+	}
 }

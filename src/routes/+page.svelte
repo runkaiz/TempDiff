@@ -101,40 +101,87 @@
 				break;
 		}
 
-		try {
-			const options = {
-				method: 'GET'
-			};
+		if (days == 1) {
+			try {
+				const options = {
+					method: 'GET'
+				};
 
-			const url =
-				'/fetchWeather?' +
-				new URLSearchParams({
-					lat: firstLat,
-					lon: firstLon
-				});
-			const response = await fetch(url, options);
-			const parsed = await response.json();
+				const url =
+					'/fetchWeather?' +
+					new URLSearchParams({
+						lat: firstLat,
+						lon: firstLon
+					});
+				const response = await fetch(url, options);
+				const parsed = await response.json();
 
-			results[0].push(parsed);
+				results[0].push(parsed);
 
-			const url2 =
-				'/fetchWeather?' +
-				new URLSearchParams({
-					lat: secondLat,
-					lon: secondLon
-				});
-			const response2 = await fetch(url2, options);
-			const parsed2 = await response2.json();
+				const url2 =
+					'/fetchWeather?' +
+					new URLSearchParams({
+						lat: secondLat,
+						lon: secondLon
+					});
+				const response2 = await fetch(url2, options);
+				const parsed2 = await response2.json();
 
-			results[1].push(parsed2);
+				results[1].push(parsed2);
 
-			results = results;
+				results = results;
+				resultReady = true;
+			} catch (error) {
+				console.error(error);
+			}
+		} else {
+			let d = new Date();
+			d.setDate(d.getDate() - 1);
+
+			for (let i = 0; i < days; i++) {
+				try {
+					const options = {
+						method: 'GET'
+					};
+
+					// convert the timestamp d from milliseconds to seconds without leaving any floating points
+					const seconds = Math.floor(d.valueOf() / 1000);
+
+					const url =
+						'/fetchHistory?' +
+						new URLSearchParams({
+							lat: firstLat,
+							lon: firstLon,
+							time: seconds
+						});
+					const response = await fetch(url, options);
+					const parsed = await response.json();
+
+					results[0].push(parsed);
+
+					const url2 =
+						'/fetchHistory?' +
+						new URLSearchParams({
+							lat: secondLat,
+							lon: secondLon,
+							time: seconds
+						});
+					const response2 = await fetch(url2, options);
+					const parsed2 = await response2.json();
+
+					results[1].push(parsed2);
+
+					results = results;
+				} catch (error) {
+					console.error(error);
+				}
+
+				d.setDate(d.getDate() - 1);
+			}
+
+			console.log(results);
 			resultReady = true;
-		} catch (error) {
-			console.error(error);
 		}
-
-		console.log(results);
 	}
 </script>
 
@@ -306,23 +353,42 @@
 			</nav>
 		</div>
 	</div>
-	{#if shouldDisplayResult && resultReady}
+	{#if shouldDisplayResult && resultReady && results != [[], []]}
 		<div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
 			<div class="grid grid-cols-3 mt-2 gap-8 place-content-center">
-				<div>
-					{#each results[0] as result}
-						<WeatherItem condition={result.current.temp} icon={result.current.weather[0].icon} />
-					{/each}
-				</div>
-				<div class="mx-auto text-center">
-					<h3>Result</h3>
-					<h2>{results[1][0].current.temp - results[0][0].current.temp}</h2>
-				</div>
-				<div>
-					{#each results[1] as result}
-						<WeatherItem condition={result.current.temp} icon={result.current.weather[0].icon} />
-					{/each}
-				</div>
+				{#if current}
+					<div>
+						<WeatherItem
+							condition={results[0][0].current.temp}
+							icon={results[0][0].current.weather[0].icon}
+						/>
+					</div>
+					<div class="mx-auto text-center">
+						<h3>Result</h3>
+						<h2>{results[1][0].current.temp - results[0][0].current.temp}</h2>
+					</div>
+					<div>
+						<WeatherItem
+							condition={results[1][0].current.temp}
+							icon={results[1][0].current.weather[0].icon}
+						/>
+					</div>
+				{:else}
+					<div>
+						{#each results[0] as result}
+							<WeatherItem condition={result.data[0].temp} icon={result.data[0].weather[0].icon} />
+						{/each}
+					</div>
+					<div class="mx-auto text-center">
+						<h3>Result</h3>
+						<h2>{results[1][0].data[0].temp - results[0][0].data[0].temp}</h2>
+					</div>
+					<div>
+						{#each results[1] as result}
+							<WeatherItem condition={result.data[0].temp} icon={result.data[0].weather[0].icon} />
+						{/each}
+					</div>
+				{/if}
 			</div>
 		</div>
 	{/if}

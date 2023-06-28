@@ -1,4 +1,4 @@
 {
-  "editor.default_syntax" : "svelte",
-  "tailwindcss.workspace.tailwindConfig" : "\/Users\/runkai\/Documents\/Projects\/TempDiff\/tailwind.config.cjs"
+	"editor.default_syntax": "svelte",
+	"tailwindcss.workspace.tailwindConfig": "/Users/runkai/Documents/Projects/TempDiff/tailwind.config.cjs"
 }
